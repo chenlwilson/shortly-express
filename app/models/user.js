@@ -15,11 +15,9 @@ var User = db.Model.extend({
         })
         .catch(err => {
           console.log('ERROR-------------> ', err);
-
         });
     });
   }
-
 });
 
 module.exports = User;

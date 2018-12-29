@@ -23,59 +23,94 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
 
-app.get('/', 
-function(req, res) {
-  res.render('index');
-});
-
-app.get('/create', 
-function(req, res) {
-  res.render('index');
-});
-
-app.get('/links', 
-function(req, res) {
-  Links.reset().fetch().then(function(links) {
-    res.status(200).send(links.models);
+app.get('/',
+  function (req, res) {
+    res.render('index');
   });
-});
 
-app.post('/links', 
-function(req, res) {
-  var uri = req.body.url;
+app.get('/create',
+  function (req, res) {
+    res.render('index');
+  });
 
-  if (!util.isValidUrl(uri)) {
-    console.log('Not a valid url: ', uri);
-    return res.sendStatus(404);
-  }
+app.get('/links',
+  function (req, res) {
+    Links.reset().fetch().then(function (links) {
+      res.status(200).send(links.models);
+    });
+  });
 
-  new Link({ url: uri }).fetch().then(function(found) {
-    if (found) {
-      res.status(200).send(found.attributes);
-    } else {
-      util.getUrlTitle(uri, function(err, title) {
-        if (err) {
-          console.log('Error reading URL heading: ', err);
-          return res.sendStatus(404);
-        }
+app.post('/links',
+  function (req, res) {
+    var uri = req.body.url;
 
-        Links.create({
-          url: uri,
-          title: title,
-          baseUrl: req.headers.origin
-        })
-        .then(function(newLink) {
-          res.status(200).send(newLink);
-        });
-      });
+    if (!util.isValidUrl(uri)) {
+      console.log('Not a valid url: ', uri);
+      return res.sendStatus(404);
     }
+
+    new Link({ url: uri }).fetch().then(function (found) {
+      if (found) {
+        res.status(200).send(found.attributes);
+      } else {
+        util.getUrlTitle(uri, function (err, title) {
+          if (err) {
+            console.log('Error reading URL heading: ', err);
+            return res.sendStatus(404);
+          }
+
+          Links.create({
+            url: uri,
+            title: title,
+            baseUrl: req.headers.origin
+          })
+            .then(function (newLink) {
+              res.status(200).send(newLink);
+            });
+        });
+      }
+    });
   });
-});
 
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+// Allow users to register for a new account, or to login - build pages for login
+// and sign up, and add routes to process the form data using POST actions.
+app.post('/signup', (req, res) => {
+  // create user with encrypted password
+  var user = new User({ username: req.body.username, password: req.body.password });
+  user.save()
+    .then(newUser => {
+      console.log('success');
+      req.session.regenerate(() => {
+        req.session.user = newUser;
+      });
+    });
 
+});
+
+app.post('/login', (req, res) => {
+  // if you user exists
+  new User({username: req.body.username}).fetch()
+    .then(foundUser => {
+      bcrypt.compare(req.body.password, foundUser.get('password'), (err, res) => {
+        if (res) {
+          req.session.regenerate(() => {
+            req.session.found = foundUser.username;
+          });
+        } else {
+          console.log('whoops');
+        }
+      });
+    });
+  // if password matches
+  // grant access
+  // else
+  // message wrong password
+  // else
+  // direct to signup and message username doesn't exist
+});
 
 
 /************************************************************/
@@ -84,8 +119,8 @@ function(req, res) {
 // If the short-code doesn't exist, send the user to '/'
 /************************************************************/
 
-app.get('/*', function(req, res) {
-  new Link({ code: req.params[0] }).fetch().then(function(link) {
+app.get('/*', function (req, res) {
+  new Link({ code: req.params[0] }).fetch().then(function (link) {
     if (!link) {
       res.redirect('/');
     } else {
@@ -93,9 +128,9 @@ app.get('/*', function(req, res) {
         linkId: link.get('id')
       });
 
-      click.save().then(function() {
+      click.save().then(function () {
         link.set('visits', link.get('visits') + 1);
-        link.save().then(function() {
+        link.save().then(function () {
           return res.redirect(link.get('url'));
         });
       });
