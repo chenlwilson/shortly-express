@@ -41,10 +41,10 @@ db.knex.schema.hasTable('clicks').then(function(exists) {
 /************************************************************/
 db.knex.schema.hasTable('users').then(function(exists) {
   if (!exists) {
-    db.knex.schema.createTable('users', function (table) {
-      table.increments('id').primary();
-      table.string('username', 255);
-      table.string('password', 255);
+    db.knex.schema.createTable('users', function (user) {
+      user.increments('id').primary();
+      user.string('username', 255);
+      user.string('password', 255);
     }).then(function (table) {
       console.log('Created Table', table);
     });

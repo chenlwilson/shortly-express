@@ -39,7 +39,7 @@ app.get('/create', util.checkUser,
     res.render('index');
   });
 
-app.get('/links', util.checkUser,
+app.get('/links',
   function (req, res) {
     Links.reset().fetch().then(function (links) {
       res.status(200).send(links.models);
@@ -94,39 +94,45 @@ app.post('/links',
 
 app.post('/signup', (req, res) => {
   // create user with encrypted password
-  var user = new User({ username: req.body.username, password: req.body.password });
-  user.save()
-    .then(newUser => {
-      console.log('success');
-      req.session.regenerate(() => {
-        req.session.user = newUser.username;
-      });
-    });
-
+  var username = req.body.username;
+  var password = req.body.password;
+  new User({ username: username }).fetch().then(function (found) {
+    if (found) {
+      res.redirect('/login');
+    } else {
+      Users.create({
+        username: username,
+        password: password
+      })
+        .then(function (newUser) {
+          req.session.regenerate(() => {
+            req.session.user = newUser.username;
+            res.redirect('/links');
+          });
+        });
+    }
+  });
 });
 
 app.post('/login', (req, res) => {
-  // if you user exists
-  new User({username: req.body.username}).fetch()
-    .then(foundUser => {
-      bcrypt.compare(req.body.password, foundUser.get('password'), (err, res) => {
-        if (res) {
-          req.session.regenerate(() => {
-            req.session.found = foundUser.username;
-          });
+  var username = req.body.username;
+  var password = req.body.password;
+  new User({ username: username }).fetch().then(function (found) {
+    if (found) {
+      bcrypt.compare(password, found.get('password'), (err, res) => {
+        if (err) {
+          console.log(err);
         } else {
-          console.log('whoops');
+          req.session.regenerate(() => {
+            req.session.found = found.username;
+          });
         }
       });
-    });
-  // if password matches
-  // grant access
-  // else
-  // message wrong password
-  // else
-  // direct to signup and message username doesn't exist
+    } else {
+      res.redirect('/signup');
+    }
+  });
 });
-
 
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail

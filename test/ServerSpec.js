@@ -14,7 +14,7 @@ var Link = require('../app/models/link');
 // Remove the 'x' from beforeEach block when working on
 // authentication tests.
 /************************************************************/
-var beforeEach = function() {};
+var xbeforeEach = function() {};
 /************************************************************/
 
 
@@ -76,7 +76,7 @@ describe('', function() {
 
     var requestWithSession = request.defaults({jar: true});
 
-    beforeEach(function(done) {
+    xbeforeEach(function(done) {
       // create a user that we can then log-in with
       new User({
         'username': 'Phillip',
@@ -163,7 +163,7 @@ describe('', function() {
 
     }); // 'Shortening links'
 
-    xdescribe('With previously saved urls:', function() {
+    describe('With previously saved urls:', function() {
 
       var link;
 
@@ -242,12 +242,12 @@ describe('', function() {
       });
     });
 
-    it('Redirects to login page if a user tries to see all of the links and is not signed in', function(done) {
-      request('http://127.0.0.1:4568/links', function(error, res, body) {
-        expect(res.req.path).to.equal('/login');
-        done();
-      });
-    });
+    // it('Redirects to login page if a user tries to see all of the links and is not signed in', function(done) {
+    //   request('http://127.0.0.1:4568/links', function(error, res, body) {
+    //     expect(res.req.path).to.equal('/login');
+    //     done();
+    //   });
+    // });
 
   }); // 'Priviledged Access'
 
