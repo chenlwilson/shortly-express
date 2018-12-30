@@ -2,6 +2,7 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
+var session = require('express-session');
 
 
 var db = require('./app/config');
@@ -21,24 +22,37 @@ app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
+app.use(session({
+  secret: 'shortly test',
+  resave: false,
+  saveUnitialized: true
+}));
 
 
-app.get('/',
+app.get('/', util.checkUser,
   function (req, res) {
     res.render('index');
   });
 
-app.get('/create',
+app.get('/create', util.checkUser,
   function (req, res) {
     res.render('index');
   });
 
-app.get('/links',
+app.get('/links', util.checkUser,
   function (req, res) {
     Links.reset().fetch().then(function (links) {
       res.status(200).send(links.models);
     });
   });
+
+app.get('/login', (req, res) => {
+  res.render('login');
+});
+
+app.get('/signup', (req, res) => {
+  res.render('signup');
+});
 
 app.post('/links',
   function (req, res) {
@@ -77,6 +91,7 @@ app.post('/links',
 /************************************************************/
 // Allow users to register for a new account, or to login - build pages for login
 // and sign up, and add routes to process the form data using POST actions.
+
 app.post('/signup', (req, res) => {
   // create user with encrypted password
   var user = new User({ username: req.body.username, password: req.body.password });
@@ -84,7 +99,7 @@ app.post('/signup', (req, res) => {
     .then(newUser => {
       console.log('success');
       req.session.regenerate(() => {
-        req.session.user = newUser;
+        req.session.user = newUser.username;
       });
     });
 
