@@ -96,40 +96,14 @@ app.post('/signup', (req, res) => {
   // create user with encrypted password
   var username = req.body.username;
   var password = req.body.password;
-  console.log('got to line 99');
-  var newUser = new User({ username: username, password: password });
-  console.log('newUser is');
-  console.log(newUser);
-
-  newUser.save();
-
-  // Users.create(newUser, (err, result) => {
-  //   if (err) {
-  //     console.log(err);
-  //   } else {
-  //     console.log(result);
-  //   }
-  // });
-
-  // newUser.fetch().then(function (found) {
-  //   console.log('got to line 101');
-  //   if (found) {
-  //     res.redirect('/login');
-  //   } else {
-  //     console.log('got to line 104');
-  //     Users.create({
-  //       username: username,
-  //       password: password
-  //     })
-  //       .then(function (newUser) {
-  //         req.session.regenerate(() => {
-  //           req.session.user = newUser.username;
-  //           res.redirect('/links');
-  //         });
-  //       });
-  //   }
-  // })
-  // .catch(err => console.log(err));
+  var newUser = new User({'username': username, 'password': password});
+  newUser.save()
+    .then((newUser) => {
+      req.session.regenerate(() => {
+        req.session.user = newUser.username;
+      });
+    })
+    .catch(err => console.log(err));
 });
 
 app.post('/login', (req, res) => {
