@@ -7,7 +7,14 @@ var User = db.Model.extend({
   tablename: 'users',
   initialize: function () {
     this.on('creating', function (model, attrs, options) {
-      bcrypt.hash(model.get('password'), saltRounds, function (err, hash) {
+      // console.log('model is');
+      // console.log(model);
+      // console.log('attrs is');
+      // console.log(attrs);
+      // console.log('options is');
+      // console.log(options);
+      var salt = bcrypt.genSaltSync();
+      bcrypt.hash(model.get('password'), salt, null, function (err, hash) {
         if (err) {
           console.log(err);
         } else {
